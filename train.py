@@ -18,9 +18,9 @@ class Parameters():
         self.tag_delimiter = "/"
 
         # Network
-        self.num_steps = 60
-        self.lstm_num_layers = 3
-        self.lstm_hidden_units = 300
+        self.num_steps = 100
+        self.lstm_num_layers = 5
+        self.lstm_hidden_units = 500
         self.bidirectional = True
 
         # Dropout
@@ -35,8 +35,8 @@ class Parameters():
         self.time_bias_decay = 1e-8
 
         # Optimizer
-        self.optimizer = "Adam"
-        self.learning_rate = 0.0005
+        self.optimizer = "RMSprop"
+        self.learning_rate = 0.001
         self.loss = "categorical_crossentropy"
 
         # Training

@@ -18,9 +18,7 @@ class Model(object):
             lstm = LSTM(params.lstm_hidden_units, input_length=params.num_steps,
                         return_sequences=True, unroll=True,
                         dropout_W=params.lstm_w_dropout,
-                        dropout_U=params.lstm_u_dropout,
-                        U_regularizer=l2(params.lstm_u_decay),
-                        W_regularizer=l2(params.lstm_w_decay))
+                        dropout_U=params.lstm_u_dropout)
 
             # LSTM Bi-directional
             if params.bidirectional:
@@ -39,9 +37,7 @@ class Model(object):
             dim = params.lstm_hidden_units
 
         # RNN
-        model.add(TimeDistributed(Dense(constant.NUM_TAGS, activation="softmax",
-                                        W_regularizer=l2(params.time_weight_decay),
-                                        b_regularizer=l2(params.time_bias_decay)),
+        model.add(TimeDistributed(Dense(constant.NUM_TAGS, activation="softmax"),
                                   input_shape=(params.num_steps, dim)))
 
         # Optimizer
