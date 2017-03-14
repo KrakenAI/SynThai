@@ -1,7 +1,7 @@
 import constant
 
 from keras.models import Sequential
-from keras.layers import LSTM, TimeDistributed, Dense, Dropout
+from keras.layers import Embedding, LSTM, TimeDistributed, Dense, Dropout
 from keras.layers.wrappers import Bidirectional
 from keras.regularizers import l2
 from keras.optimizers import Adam, RMSprop
@@ -11,9 +11,11 @@ class Model(object):
         # Sequential Model
         model = Sequential()
 
-        # LSTM Layer
-        first_layer = True
+        # Embedding Layer
+        model.add(Embedding(constant.NUM_CHARS, params.embedding_hidden_units,
+                            input_length=params.num_steps))
 
+        # LSTM Layer
         for _ in range(params.lstm_num_layers):
             lstm = LSTM(params.lstm_hidden_units, input_length=params.num_steps,
                         return_sequences=True, unroll=True,
@@ -21,13 +23,7 @@ class Model(object):
                         dropout_U=params.lstm_u_dropout)
 
             # LSTM Bi-directional
-            if params.bidirectional:
-                if first_layer:
-                    bi_lstm = Bidirectional(lstm, input_shape=(params.num_steps, 1))
-                    first_layer = False
-
-                else:
-                    bi_lstm = Bidirectional(lstm)
+            bi_lstm = Bidirectional(lstm)
 
             model.add(bi_lstm)
 

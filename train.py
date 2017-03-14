@@ -17,10 +17,13 @@ class Parameters():
         self.word_delimiter = "|"
         self.tag_delimiter = "/"
 
+        # Embedding Layer
+        self.embedding_hidden_units = 10
+
         # Network
-        self.num_steps = 100
-        self.lstm_num_layers = 5
-        self.lstm_hidden_units = 500
+        self.num_steps = 60
+        self.lstm_num_layers = 3
+        self.lstm_hidden_units = 128
         self.bidirectional = True
 
         # Dropout
