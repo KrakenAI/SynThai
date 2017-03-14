@@ -188,9 +188,9 @@ class InputBuilder(object):
         self.x = self._pad(self.x, self.num_steps)
 
         if self.three_dimension:
-            self.x = self.x.reshape((-1, self.num_steps))
-        else:
             self.x = self.x.reshape((-1, self.num_steps, 1))
+        else:
+            self.x = self.x.reshape((-1, self.num_steps))
 
         # Pad, convert to one-hot vector, and reshape y
         self.y = self._pad(self.y, self.num_steps)
