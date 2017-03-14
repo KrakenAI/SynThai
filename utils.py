@@ -15,7 +15,7 @@ class Text(object):
 
 
 class Corpus(object):
-    def __init__(self, directory_path, word_delimiter, tag_delimiter):
+    def __init__(self, directory_path, word_delimiter=None, tag_delimiter=None):
         self.directory_path = directory_path
         self.word_delimiter = word_delimiter
         self.tag_delimiter = tag_delimiter
@@ -34,22 +34,26 @@ class Corpus(object):
         # Convert multiple spaces to one space
         content = re.sub(r"\s{2,}", r"\s", content)
 
-        # Trim word delimiter and whitespace from starting and ending
-        content = content.strip(self.word_delimiter + string.whitespace)
+        # Trim whitespace from starting and ending
+        content = content.strip(string.whitespace)
 
-        # Convert special characters (word and tag delimiter)
-        # in text's content to escape character
-        find = "{0}{0}{1}".format(re.escape(self.word_delimiter),
-                                  re.escape(self.tag_delimiter))
-        replace = "{0}{2}{1}".format(re.escape(self.word_delimiter),
-                                     re.escape(self.tag_delimiter),
-                                     re.escape(constant.ESCAPE_WORD_DELIMITER))
-        content = re.sub(find, replace, content)
+        if self.word_delimiter and self.tag_delimiter:
+            # Trim word delimiter from starting and ending
+            content = content.strip(self.word_delimiter)
 
-        find = "{0}{0}".format(re.escape(self.tag_delimiter))
-        replace = "{1}{0}".format(re.escape(self.tag_delimiter),
-                                  re.escape(constant.ESCAPE_TAG_DELIMITER))
-        content = re.sub(find, replace, content)
+            # Convert special characters (word and tag delimiter)
+            # in text's content to escape character
+            find = "{0}{0}{1}".format(re.escape(self.word_delimiter),
+                                      re.escape(self.tag_delimiter))
+            replace = "{0}{2}{1}".format(re.escape(self.word_delimiter),
+                                         re.escape(self.tag_delimiter),
+                                         re.escape(constant.ESCAPE_WORD_DELIMITER))
+            content = re.sub(find, replace, content)
+
+            find = "{0}{0}".format(re.escape(self.tag_delimiter))
+            replace = "{1}{0}".format(re.escape(self.tag_delimiter),
+                                      re.escape(constant.ESCAPE_TAG_DELIMITER))
+            content = re.sub(find, replace, content)
 
         # Replace distinct quotation mark into standard
         content = re.sub(r"\u2018|\u2019", r"\'", content)
@@ -81,6 +85,9 @@ class Corpus(object):
         return len(self.__corpus)
 
     def get_token_list(self, index):
+        if not self.word_delimiter or not self.tag_delimiter:
+            return list()
+
         # Grab content by index
         content = self.__corpus[index].content
 
@@ -106,7 +113,7 @@ class Corpus(object):
                 tag = datum[1]
 
                 # Replace escape character to proper character
-                word = word.replace(constant.ESCAPE_WORD_DELIMITER, self.tag_delimiter)
+                word = word.replace(constant.ESCAPE_WORD_DELIMITER, self.word_delimiter)
                 tag = tag.replace(constant.ESCAPE_TAG_DELIMITER, self.tag_delimiter)
 
             # Replace token with word and tag pair
@@ -114,18 +121,51 @@ class Corpus(object):
 
         return token_list
 
+    def get_char_list(self, index):
+        # Grab content by index
+        content = self.__corpus[index].content
+
+        # Empty file
+        if not content:
+            return list()
+
+        return list(content)
 
 class InputBuilder(object):
-    def __init__(self, corpus, char_index, tag_index, num_steps):
+    def __init__(self, corpus, char_index, tag_index, num_steps,
+                 text_mode=False, three_dimension=False):
         # Global Variable
         self.corpus = corpus
         self.char_index = char_index
         self.tag_index = tag_index
         self.num_steps = num_steps
+        self.three_dimension = three_dimension
 
         self.x = list()
-        self.y = list()
 
+        if not text_mode:
+            self.y = list()
+            self.generate_x_y()
+
+        else:
+            self.generate_x()
+
+    def generate_x(self):
+        # Generate x from text
+        for corpus_idx in range(self.corpus.count):
+            char_list = self.corpus.get_char_list(corpus_idx)
+
+            encode_word = [self._encode(self.char_index, char,
+                                        default_index=constant.UNKNOW_CHAR_INDEX)
+                           for char in char_list]
+
+            self.x.extend(encode_word)
+
+        # Pad and reshape x
+        self.x = self._pad(self.x, self.num_steps)
+        self.x = self.x.reshape((-1, self.num_steps, 1))
+
+    def generate_x_y(self):
         # Generate x, y from corpus
         for corpus_idx in range(self.corpus.count):
             token_list = self.corpus.get_token_list(corpus_idx)
@@ -133,7 +173,7 @@ class InputBuilder(object):
             for word, tag in token_list:
                 # x
                 encode_word = [self._encode(self.char_index, char,
-                               default_index=constant.UNKNOW_CHAR_INDEX)
+                                            default_index=constant.UNKNOW_CHAR_INDEX)
                                for char in word]
 
                 self.x.extend(encode_word)
@@ -146,7 +186,11 @@ class InputBuilder(object):
 
         # Pad and reshape x
         self.x = self._pad(self.x, self.num_steps)
-        self.x = self.x.reshape((-1, self.num_steps, 1))
+
+        if self.three_dimension:
+            self.x = self.x.reshape((-1, self.num_steps))
+        else:
+            self.x = self.x.reshape((-1, self.num_steps, 1))
 
         # Pad, convert to one-hot vector, and reshape y
         self.y = self._pad(self.y, self.num_steps)
