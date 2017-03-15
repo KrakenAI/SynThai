@@ -95,7 +95,7 @@ def main():
 
     # Create index for character and tag
     char_index = index_builder(constant.CHARACTER_LIST,
-                               start_index=constant.UNKNOW_CHAR_INDEX)
+                               start_index=constant.CHAR_START_INDEX)
     tag_index = index_builder(constant.TAG_LIST,
                               start_index=constant.TAG_START_INDEX)
 
