@@ -31,12 +31,6 @@ class Parameters():
         self.lstm_w_dropout = 0.5
         self.lstm_u_dropout = 0.5
 
-        # Regularization
-        self.lstm_u_decay = 1e-8
-        self.lstm_w_decay = 1e-8
-        self.time_weight_decay = 1e-8
-        self.time_bias_decay = 1e-8
-
         # Optimizer
         self.optimizer = "RMSprop"
         self.learning_rate = 0.001
@@ -76,7 +70,7 @@ class Parameters():
         self.csv_append = False
 
         # Debug
-        self.metrics = ["accuracy", "fmeasure"]
+        self.metrics = ["accuracy"]
         self.training_verbose = 1
 
         # Other
