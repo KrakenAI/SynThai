@@ -13,7 +13,7 @@ class Model(object):
 
         # Embedding Layer
         model.add(Embedding(constant.NUM_CHARS, params.embedding_hidden_units,
-                            input_length=params.num_steps))
+                            input_length=params.num_steps, mask_zero=True))
 
         # LSTM Layer
         for _ in range(params.lstm_num_layers):

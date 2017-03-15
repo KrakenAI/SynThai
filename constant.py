@@ -124,19 +124,19 @@ CHARACTER_LIST = [
     SPACEBAR,
 ]
 
-UNKNOW_CHAR_INDEX = 0
-CHAR_START_INDEX = 1
-NUM_CHARS = len(CHARACTER_LIST) + 1
+PAD_CHAR_INDEX = 0
+UNKNOW_CHAR_INDEX = 1
+CHAR_START_INDEX = 2
+NUM_CHARS = len(CHARACTER_LIST) + 2
+
+PAD_TAG_INDEX = 0
+NON_SEGMENT_TAG_INDEX = 1
+UNKNOW_TAG_INDEX = 2
+TAG_START_INDEX = 3
 
 TAG_LIST = ["NN", "NR", "PPER", "PINT", "PDEM", "DPER", "DINT", "DDEM", "PDT",
             "REFX", "VV", "VA", "AUX", "JJA", "JJV", "ADV", "NEG", "PAR", "CL",
             "CD", "OD", "FXN", "FXG", "FXAV", "FXAJ", "COMP", "CNJ", "P", "IJ",
             "PU", "FWN", "FWV", "FWA", "FWX"]
 
-
-NON_SEGMENT_TAG_INDEX = 0
-UNKNOW_TAG_INDEX = 1
-TAG_START_INDEX = 2
-
-# +2 for Non-segmentation and Unknow tag
-NUM_TAGS = len(TAG_LIST) + 2
+NUM_TAGS = len(TAG_LIST) + 3
