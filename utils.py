@@ -179,8 +179,7 @@ class InputBuilder(object):
 
                 # y
                 self.y.extend([constant.NON_SEGMENT_TAG_INDEX] * (len(word) - 1))
-                encode_tag = self._encode(self.tag_index, tag,
-                                          default_index=constant.UNKNOW_TAG_INDEX)
+                encode_tag = self._encode(self.tag_index, tag)
                 self.y.append(encode_tag)
 
         # Pad and reshape x
@@ -196,10 +195,16 @@ class InputBuilder(object):
         self.y = to_categorical(self.y, constant.NUM_TAGS)
         self.y = self.y.reshape((-1, self.num_steps, constant.NUM_TAGS))
 
-    def _encode(self, index, key, default_index=0):
+    def _encode(self, index, key, default_index=-1):
         # Key does not exist in index
         if key not in index:
-            return default_index
+            # No Default
+            if default_index == -1:
+                raise AssertionError("Unknow Tag Detected! [{0}]".format(key))
+
+            # Default
+            else:
+                return default_index
 
         return index[key]
 
