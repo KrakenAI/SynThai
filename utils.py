@@ -141,33 +141,28 @@ class InputBuilder(object):
         self.num_steps = num_steps
         self.three_dimension = three_dimension
 
-        self.x = list()
-
         if not text_mode:
+            self.x = list()
             self.y = list()
             self.generate_x_y()
 
-        else:
-            self.generate_x()
+    def get_encode_char_list(self, index):
+        # Grab character list from text
+        char_list = self.corpus.get_char_list(index)
 
-    def generate_x(self):
-        # Generate x from text
-        for corpus_idx in range(self.corpus.count):
-            char_list = self.corpus.get_char_list(corpus_idx)
+        encode_char_list = [self._encode(self.char_index, char,
+                                         default_index=constant.UNKNOW_CHAR_INDEX)
+                            for char in char_list]
 
-            encode_word = [self._encode(self.char_index, char,
-                                        default_index=constant.UNKNOW_CHAR_INDEX)
-                           for char in char_list]
-
-            self.x.extend(encode_word)
-
-        # Pad and reshape x
-        self.x = self._pad(self.x, self.num_steps)
+        # Pad and reshape
+        encode_char_list = self._pad(encode_char_list, self.num_steps)
 
         if self.three_dimension:
-            self.x = self.x.reshape((-1, self.num_steps, 1))
+            encode_char_list = encode_char_list.reshape((-1, self.num_steps, 1))
         else:
-            self.x = self.x.reshape((-1, self.num_steps))
+            encode_char_list = encode_char_list.reshape((-1, self.num_steps))
+
+        return encode_char_list
 
     def generate_x_y(self):
         # Generate x, y from corpus
@@ -176,11 +171,11 @@ class InputBuilder(object):
 
             for word, tag in token_list:
                 # x
-                encode_word = [self._encode(self.char_index, char,
-                                            default_index=constant.UNKNOW_CHAR_INDEX)
-                               for char in word]
+                encode_char_list = [self._encode(self.char_index, char,
+                                                 default_index=constant.UNKNOW_CHAR_INDEX)
+                                    for char in word]
 
-                self.x.extend(encode_word)
+                self.x.extend(encode_char_list)
 
                 # y
                 self.y.extend([constant.NON_SEGMENT_TAG_INDEX] * (len(word) - 1))
@@ -216,7 +211,6 @@ class InputBuilder(object):
         arr_pad[:size] = arr
 
         return arr_pad
-
 
 
 def index_builder(lst, start_index=1, reverse=False):
