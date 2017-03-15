@@ -35,6 +35,5 @@ class Callback(object):
         # Callback; CSV log
         if params.csv_log_enabled:
             cb = CSVLogger(filename=params.csv_log_path,
-                           separator=params.csv_sep,
-                           append=params.csv_append)
+                           separator=params.csv_sep)
             self.callbacks.append(cb)

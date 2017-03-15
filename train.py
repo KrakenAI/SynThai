@@ -67,10 +67,9 @@ class Parameters():
         self.csv_log_enabled = True
         self.csv_log_path = "%s/log.csv" % (self.cp_dir)
         self.csv_sep = ","
-        self.csv_append = False
 
         # Debug
-        self.metrics = ["accuracy"]
+        self.metrics = ["categorical_accuracy"]
         self.training_verbose = 1
 
         # Other
@@ -111,7 +110,7 @@ def main():
     pprint.pprint(model.get_config())
 
     model.fit(inb.x, inb.y, batch_size=params.batch_size,
-              validation_split=params.valid_split, nb_epoch=params.n_epoch,
+              validation_split=params.valid_split, epochs=params.n_epoch,
               shuffle=params.shuffle, callbacks=callbacks,
               verbose=params.training_verbose)
 

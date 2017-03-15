@@ -13,18 +13,17 @@ class Model(object):
 
         # Embedding Layer
         model.add(Embedding(constant.NUM_CHARS, params.embedding_hidden_units,
-                            input_length=params.num_steps, mask_zero=True))
+                            input_length=params.num_steps))
 
         # LSTM Layer
         for _ in range(params.lstm_num_layers):
-            lstm = LSTM(params.lstm_hidden_units, input_length=params.num_steps,
+            lstm = LSTM(params.lstm_hidden_units,
                         return_sequences=True, unroll=True,
-                        dropout_W=params.lstm_w_dropout,
-                        dropout_U=params.lstm_u_dropout)
+                        dropout=params.lstm_w_dropout,
+                        recurrent_dropout=params.lstm_u_dropout)
 
             # LSTM Bi-directional
             bi_lstm = Bidirectional(lstm)
-
             model.add(bi_lstm)
 
             # LSTM Dropout
