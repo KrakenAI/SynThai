@@ -163,7 +163,11 @@ class InputBuilder(object):
 
         # Pad and reshape x
         self.x = self._pad(self.x, self.num_steps)
-        self.x = self.x.reshape((-1, self.num_steps, 1))
+
+        if self.three_dimension:
+            self.x = self.x.reshape((-1, self.num_steps, 1))
+        else:
+            self.x = self.x.reshape((-1, self.num_steps))
 
     def generate_x_y(self):
         # Generate x, y from corpus
