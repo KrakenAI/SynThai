@@ -1,0 +1,1 @@
+## Thai Word Segmentation and POS Tagging with Deep Learning
