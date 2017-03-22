@@ -1,8 +1,8 @@
 import constant
 import os
-import pprint
 import numpy as np
 from datetime import datetime
+from pprint import pprint
 from model import Model
 from callback import Callback
 from utils import Corpus, InputBuilder, index_builder
@@ -75,6 +75,10 @@ class Parameters():
         self.csv_sep = ","
 
         # Debug
+        self.model_architecture_path = "%s/model.json" % (self.cp_dir)
+        self.model_config_log_path = "%s/model_config.txt" % (self.cp_dir)
+
+        # Metrics
         self.metrics = ["categorical_accuracy"]
 
         # Other
@@ -115,10 +119,18 @@ def main():
     # Callback
     callbacks = Callback(params).callbacks
 
-    # Show model summary and config
-    pprint.pprint(model.summary())
-    pprint.pprint(model.get_config())
+    # Save model architecture to file
+    with open(params.model_architecture_path, "w") as f:
+        f.write(model.to_json())
 
+    # Save model config to file
+    with open(params.model_config_log_path, "w") as f:
+        pprint(model.get_config(), stream=f)
+
+    # Display model summary before train
+    model.summary()
+
+    # Train
     model.fit(inb.x, inb.y, batch_size=params.batch_size,
               validation_split=params.valid_split, epochs=params.n_epoch,
               shuffle=params.shuffle, callbacks=callbacks)
