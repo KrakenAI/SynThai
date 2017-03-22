@@ -6,10 +6,16 @@ from datetime import datetime
 from model import Model
 from callback import Callback
 from utils import Corpus, InputBuilder, index_builder
+from keras.models import load_model
 
 
 class Parameters():
     def __init__(self):
+        # Model
+        self.new_model_mode = True
+        # If load old model
+        self.model_path = "./checkpoint/15-03-2017-11-40-02/0199-0.1019.hdf5"
+
         # Dataset
         self.train_directory_path = "./corpus/train"
         self.test_directory_path = "./corpus/test"
@@ -102,7 +108,12 @@ def main():
     inb = InputBuilder(train_dataset, char_index, tag_index, params.num_steps)
 
     # Create model
-    model = Model(params).model
+    if params.new_model_mode:
+        model = Model(params).model
+    else:
+        model = load_model(params.model_path)
+
+    # Callback
     callbacks = Callback(params).callbacks
 
     # Show model summary and config
