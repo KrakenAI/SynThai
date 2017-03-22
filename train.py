@@ -65,9 +65,9 @@ class Parameters():
         # TensorBoard
         self.tensorboard_enabled = True
         self.tensorboard_log_dir = "%s/tensorboard" % (self.cp_dir)
-        self.histogram_freq = 0
-        self.write_graph = False
-        self.write_images = False
+        self.histogram_freq = 5
+        self.write_graph = True
+        self.write_images = True
 
         # CSV log
         self.csv_log_enabled = True
