@@ -76,7 +76,6 @@ class Parameters():
 
         # Debug
         self.metrics = ["categorical_accuracy"]
-        self.training_verbose = 1
 
         # Other
         self.seed = 123456789
@@ -122,8 +121,7 @@ def main():
 
     model.fit(inb.x, inb.y, batch_size=params.batch_size,
               validation_split=params.valid_split, epochs=params.n_epoch,
-              shuffle=params.shuffle, callbacks=callbacks,
-              verbose=params.training_verbose)
+              shuffle=params.shuffle, callbacks=callbacks)
 
 
 if __name__ == "__main__":
