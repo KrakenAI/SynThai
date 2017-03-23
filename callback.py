@@ -1,6 +1,34 @@
+
 import os
-from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, \
-                            CSVLogger
+import numpy as np
+from metric import custom_metric
+from keras.callbacks import Callback, EarlyStopping, ModelCheckpoint, \
+                            TensorBoard, CSVLogger, ProgbarLogger
+
+
+class CustomMetric(Callback):
+    def on_epoch_end(self, epoch, logs):
+        # Validation data
+        x = self.validation_data[0]
+        y_true = self.validation_data[1]
+
+        # Convert 3d one-hot to 2d one-hot
+        y_true = np.argmax(y_true, axis=2)
+
+        # Predict
+        y_pred = self.model.predict(x)
+        y_pred = np.argmax(y_pred, axis=2)
+
+        # Calculate score
+        scores = custom_metric(x, y_true, y_pred)
+
+        # Display score
+        print(end="\r")
+        for metric, score in scores.items():
+            print("| {0}: {1:.4f} |".format(metric, score), sep="", end="")
+
+        print("\n")
+
 
 class Callback(object):
     def __init__(self, params):
@@ -37,3 +65,7 @@ class Callback(object):
             cb = CSVLogger(filename=params.csv_log_path,
                            separator=params.csv_sep)
             self.callbacks.append(cb)
+
+        # Custom Metric
+        cb = CustomMetric()
+        self.callbacks.append(cb)
