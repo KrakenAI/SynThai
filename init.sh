@@ -15,3 +15,9 @@ sudo pip3 install h5py pyyaml
 
 # Keras
 sudo pip3 install keras
+
+# Scipy
+sudo pip3 install scipy
+
+# sklearn
+sudo pip3 install sklearn

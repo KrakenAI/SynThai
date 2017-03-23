@@ -18,7 +18,6 @@ class Parameters():
 
         # Dataset
         self.train_directory_path = "./corpus/train"
-        self.test_directory_path = "./corpus/test"
         self.valid_split = 0.1
         self.word_delimiter = "|"
         self.tag_delimiter = "/"
