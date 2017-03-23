@@ -1,11 +1,18 @@
+"""
+Global Constant
+"""
+
 import string
 
+# Spacebar
 SPACEBAR = " "
 SPACEBAR_TAG = "SPB"
 
+# Escape Character
 ESCAPE_WORD_DELIMITER = "\t"
 ESCAPE_TAG_DELIMITER = "\v"
 
+# Character
 CHARACTER_LIST = [
     # Thai Consonant
     "\u0e01", # ก
@@ -129,6 +136,7 @@ UNKNOW_CHAR_INDEX = 1
 CHAR_START_INDEX = 2
 NUM_CHARS = len(CHARACTER_LIST) + 2
 
+# Tag
 PAD_TAG_INDEX = 0
 NON_SEGMENT_TAG_INDEX = 1
 TAG_START_INDEX = 2
@@ -139,3 +147,6 @@ TAG_LIST = ["NN", "NR", "PPER", "PINT", "PDEM", "DPER", "DINT", "DDEM", "PDT",
             "PU", "FWN", "FWV", "FWA", "FWX", SPACEBAR_TAG]
 
 NUM_TAGS = len(TAG_LIST) + 2
+
+# Random Seed
+SEED = 1395096092

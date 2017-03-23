@@ -1,12 +1,17 @@
-import constant
-import os
+"""
+Utilities Function
+"""
+
 import glob
-import string
-import re
 import math
+import os
+import re
+import string
+
 import numpy as np
-from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
+
+import constant
 
 class Text(object):
     def __init__(self, path, filename, content):
@@ -16,8 +21,11 @@ class Text(object):
 
 
 class Corpus(object):
-    def __init__(self, directory_path, word_delimiter=None, tag_delimiter=None):
-        self.directory_path = directory_path
+    """Corpus Manager"""
+
+    def __init__(self, corpus_directory, word_delimiter=None, tag_delimiter=None):
+        # Global variable
+        self.corpus_directory = corpus_directory
         self.word_delimiter = word_delimiter
         self.tag_delimiter = tag_delimiter
         self.__corpus = list()
@@ -26,20 +34,22 @@ class Corpus(object):
         self._load()
 
     def _preprocessing(self, content):
+        """Text preprocessing"""
+
         # Remove new line
         content = re.sub(r"(\r\n|\r|\n)+", r"", content)
 
         # Convert one or multiple non-breaking space to space
         content = re.sub(r"(\xa0)+", r"\s", content)
 
-        # Convert multiple spaces to one space
+        # Convert multiple spaces to only one space
         content = re.sub(r"\s{2,}", r"\s", content)
 
-        # Trim whitespace from starting and ending
+        # Trim whitespace from starting and ending of text
         content = content.strip(string.whitespace)
 
         if self.word_delimiter and self.tag_delimiter:
-            # Trim word delimiter from starting and ending
+            # Trim word delimiter from starting and ending of text
             content = content.strip(self.word_delimiter)
 
             # Convert special characters (word and tag delimiter)
@@ -56,16 +66,17 @@ class Corpus(object):
                                       re.escape(constant.ESCAPE_TAG_DELIMITER))
             content = re.sub(find, replace, content)
 
-        # Replace distinct quotation mark into standard
+        # Replace distinct quotation mark into standard quotation
         content = re.sub(r"\u2018|\u2019", r"\'", content)
         content = re.sub(r"\u201c|\u201d", r"\"", content)
 
         return content
 
     def _load(self):
-        directory_path = glob.escape(self.directory_path)
-        path_name = os.path.join(directory_path, "*.txt")
-        file_list = sorted(glob.glob(path_name))
+        """Load text to memory"""
+
+        corpus_directory = glob.escape(self.corpus_directory)
+        file_list = sorted(glob.glob(os.path.join(corpus_directory, "*.txt")))
 
         for path in file_list:
             with open(path, "r", encoding="utf8") as text:
@@ -75,7 +86,7 @@ class Corpus(object):
                 # Preprocessing
                 content = self._preprocessing(content)
 
-                # Create content instance
+                # Create text instance
                 text = Text(path, os.path.basename(path), content)
 
                 # Add text to corpus
@@ -85,14 +96,16 @@ class Corpus(object):
     def count(self):
         return len(self.__corpus)
 
-    def filename(self, index):
+    def get_filename(self, index):
         return self.__corpus[index].filename
 
     def get_token_list(self, index):
+        """Get list of (word, tag) pair"""
+
         if not self.word_delimiter or not self.tag_delimiter:
             return list()
 
-        # Grab content by index
+        # Get content by index
         content = self.__corpus[index].content
 
         # Empty file
@@ -111,10 +124,9 @@ class Corpus(object):
             # Word
             else:
                 # Split word and tag by tag delimiter
-                #TODO: Assert token length
                 datum = token.split(self.tag_delimiter)
                 word = datum[0]
-                tag = datum[1]
+                tag = datum[-2]
 
                 # Replace escape character to proper character
                 word = word.replace(constant.ESCAPE_WORD_DELIMITER, self.word_delimiter)
@@ -126,7 +138,9 @@ class Corpus(object):
         return token_list
 
     def get_char_list(self, index):
-        # Grab content by index
+        """Get character list"""
+
+        # Get content by index
         content = self.__corpus[index].content
 
         # Empty file
@@ -136,13 +150,15 @@ class Corpus(object):
         return list(content)
 
 class InputBuilder(object):
-    def __init__(self, corpus, char_index, tag_index, num_steps,
+    """Input Builder"""
+
+    def __init__(self, corpus, char_index, tag_index, num_step,
                  text_mode=False, three_dimension=False):
-        # Global Variable
+        # Global variable
         self.corpus = corpus
         self.char_index = char_index
         self.tag_index = tag_index
-        self.num_steps = num_steps
+        self.num_step = num_step
         self.three_dimension = three_dimension
 
         if not text_mode:
@@ -150,61 +166,65 @@ class InputBuilder(object):
             self.y = list()
             self.generate_x_y()
 
-    def get_encode_char_list(self, index):
-        # Grab character list from text
+    def get_encoded_char_list(self, index):
+        """Get encoded character list"""
+
+        # Get character list from text
         char_list = self.corpus.get_char_list(index)
 
-        encode_char_list = [self._encode(self.char_index, char,
-                                         default_index=constant.UNKNOW_CHAR_INDEX)
-                            for char in char_list]
+        encoded_char_list = [self._encode(self.char_index, char,
+                                          default_index=constant.UNKNOW_CHAR_INDEX)
+                             for char in char_list]
 
         # Pad and reshape
-        encode_char_list = self._pad(encode_char_list, self.num_steps)
+        encoded_char_list = self._pad(encoded_char_list, self.num_step)
 
         if self.three_dimension:
-            encode_char_list = encode_char_list.reshape((-1, self.num_steps, 1))
+            encoded_char_list = encoded_char_list.reshape((-1, self.num_step, 1))
         else:
-            encode_char_list = encode_char_list.reshape((-1, self.num_steps))
+            encoded_char_list = encoded_char_list.reshape((-1, self.num_step))
 
-        return encode_char_list
+        return encoded_char_list
 
     def generate_x_y(self):
-        # Generate x, y from corpus
+        """Generate input and label for training"""
+
         for corpus_idx in range(self.corpus.count):
             token_list = self.corpus.get_token_list(corpus_idx)
 
             for word, tag in token_list:
-                # x
-                encode_char_list = [self._encode(self.char_index, char,
-                                                 default_index=constant.UNKNOW_CHAR_INDEX)
-                                    for char in word]
+                # Encode x
+                encoded_char_list = [self._encode(self.char_index, char,
+                                                  default_index=constant.UNKNOW_CHAR_INDEX)
+                                     for char in word]
+                self.x.extend(encoded_char_list)
 
-                self.x.extend(encode_char_list)
-
-                # y
+                # Encode y
                 self.y.extend([constant.NON_SEGMENT_TAG_INDEX] * (len(word) - 1))
-                encode_tag = self._encode(self.tag_index, tag)
-                self.y.append(encode_tag)
+                encoded_tag = self._encode(self.tag_index, tag)
+                self.y.append(encoded_tag)
 
         # Pad and reshape x
-        self.x = self._pad(self.x, self.num_steps)
+        self.x = self._pad(self.x, self.num_step)
 
         if self.three_dimension:
-            self.x = self.x.reshape((-1, self.num_steps, 1))
+            self.x = self.x.reshape((-1, self.num_step, 1))
         else:
-            self.x = self.x.reshape((-1, self.num_steps))
+            self.x = self.x.reshape((-1, self.num_step))
 
         # Pad, convert to one-hot vector, and reshape y
-        self.y = self._pad(self.y, self.num_steps)
+        self.y = self._pad(self.y, self.num_step)
         self.y = to_categorical(self.y, constant.NUM_TAGS)
-        self.y = self.y.reshape((-1, self.num_steps, constant.NUM_TAGS))
+        self.y = self.y.reshape((-1, self.num_step, constant.NUM_TAGS))
 
     def _encode(self, index, key, default_index=-1):
+        """Encode to index"""
+
         # Key does not exist in index
         if key not in index:
             # No Default
             if default_index == -1:
-                raise AssertionError("Unknow Tag Detected! [{0}]".format(key))
+                raise Exception("Unknow tag detected! [{0}]".format(key))
 
             # Default
             else:
@@ -212,17 +232,26 @@ class InputBuilder(object):
 
         return index[key]
 
-    def _pad(self, arr, num_steps):
-        # Pad to fit for num_steps dimension reshaping
+    def _pad(self, arr, num_step):
+        """Pad sequence to full fit within network"""
+
         size = len(arr)
-        pad_size = math.ceil(size / num_steps) * num_steps
+        pad_size = math.ceil(size / num_step) * num_step
         arr_pad = np.zeros(pad_size)
         arr_pad[:size] = arr
 
         return arr_pad
 
 
+class DottableDict(dict):
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.__dict__ = self
+
+
 def index_builder(lst, start_index=1, reverse=False):
+    """Build index for encoding"""
+
     index = dict()
 
     # Create index dict (reserve zero index for non element in index)

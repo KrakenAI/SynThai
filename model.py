@@ -1,47 +1,44 @@
+"""
+Keras Model
+"""
+
 import constant
 
 from keras.models import Sequential
 from keras.layers import Embedding, LSTM, TimeDistributed, Dense, Dropout
 from keras.layers.wrappers import Bidirectional
-from keras.regularizers import l2
-from keras.optimizers import Adam, RMSprop
+from keras.optimizers import RMSprop
 
 class Model(object):
-    def __init__(self, params):
-        # Sequential Model
+    def __init__(self, hyper_params):
+        # Sequential model
         model = Sequential()
 
-        # Embedding Layer
-        model.add(Embedding(constant.NUM_CHARS, params.embedding_hidden_units,
-                            input_length=params.num_steps))
+        # Embedding layer
+        model.add(Embedding(constant.NUM_CHARS, 10,
+                            input_length=hyper_params.num_step))
 
-        # LSTM Layer
-        for _ in range(params.lstm_num_layers):
-            lstm = LSTM(params.lstm_hidden_units,
-                        return_sequences=True, unroll=True,
-                        dropout=params.lstm_w_dropout,
-                        recurrent_dropout=params.lstm_u_dropout)
+        for _ in range(3):
+            # LSTM layer
+            lstm = LSTM(128, return_sequences=True, unroll=True,
+                        dropout=0.5, recurrent_dropout=0.5)
 
-            # LSTM Bi-directional
+            # Bidirectional LSTM
             bi_lstm = Bidirectional(lstm)
             model.add(bi_lstm)
 
-            # LSTM Dropout
-            model.add(Dropout(params.lstm_dropout))
-
-            dim = params.lstm_hidden_units
+            # LSTM dropout
+            model.add(Dropout(0.5))
 
         # RNN
         model.add(TimeDistributed(Dense(constant.NUM_TAGS, activation="softmax"),
-                                  input_shape=(params.num_steps, dim)))
+                                  input_shape=(hyper_params.num_step, 128)))
 
         # Optimizer
-        if params.optimizer == "Adam":
-            optimizer = Adam(params.learning_rate)
-        elif params.optimizer == "RMSprop":
-            optimizer = RMSprop(params.learning_rate)
+        optimizer = RMSprop(hyper_params.learning_rate)
 
         # Compile
-        model.compile(loss=params.loss, optimizer=optimizer, metrics=params.metrics)
+        model.compile(loss="categorical_crossentropy", optimizer=optimizer,
+                      metrics=["categorical_accuracy"])
 
         self.model = model

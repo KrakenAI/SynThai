@@ -1,0 +1,7 @@
+tensorflow
+keras
+scipy
+sklearn
+fire
+h5py
+pyyaml
