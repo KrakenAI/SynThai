@@ -9,8 +9,9 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 
 class Text(object):
-    def __init__(self, path, content):
+    def __init__(self, path, filename, content):
         self.path = path
+        self.filename = filename
         self.content = content
 
 
@@ -75,7 +76,7 @@ class Corpus(object):
                 content = self._preprocessing(content)
 
                 # Create content instance
-                text = Text(path, content)
+                text = Text(path, os.path.basename(path), content)
 
                 # Add text to corpus
                 self.__corpus.append(text)
@@ -83,6 +84,9 @@ class Corpus(object):
     @property
     def count(self):
         return len(self.__corpus)
+
+    def filename(self, index):
+        return self.__corpus[index].filename
 
     def get_token_list(self, index):
         if not self.word_delimiter or not self.tag_delimiter:
