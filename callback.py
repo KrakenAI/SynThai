@@ -12,6 +12,8 @@ from keras.callbacks import Callback, EarlyStopping, ModelCheckpoint, \
 from metric import custom_metric
 
 class CalcScore(Callback):
+    """Calculate score on custom metric with Keras callback"""
+
     def __init__(self, filename):
         super(CalcScore, self).__init__()
         self.file = open(filename, "w")

@@ -13,12 +13,11 @@ from pprint import pprint
 # Prevent Keras info message; "Using TensorFlow backend."
 STDERR = sys.stderr
 sys.stderr = open(os.devnull, "w")
-import keras
+from keras.models import load_model
 sys.stderr = STDERR
 
 import fire
 import numpy as np
-from keras.models import load_model
 from sklearn.exceptions import UndefinedMetricWarning
 
 import constant
