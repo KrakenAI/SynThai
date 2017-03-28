@@ -138,6 +138,10 @@ def run(model_path, model_num_step, text_directory, output_directory,
             # Append character to result list
             result.append(char)
 
+            # Skip tag for spacebar character
+            if char == constant.SPACEBAR:
+                continue
+
             # Tag at segmented point
             if label != constant.NON_SEGMENT_TAG_INDEX:
                 # Index offset
