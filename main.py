@@ -5,8 +5,15 @@ Thai Word Segmentation and POS Tagging with Deep Learning
 import gc
 import os
 import shutil
+import sys
 from datetime import datetime
 from pprint import pprint
+
+# Prevent Keras info message; "Using TensorFlow backend."
+STDERR = sys.stderr
+sys.stderr = open(os.devnull, "w")
+import keras
+sys.stderr = STDERR
 
 import fire
 import numpy as np
