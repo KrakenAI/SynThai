@@ -2,7 +2,9 @@
 Thai Word Segmentation and POS Tagging with Deep Learning
 """
 
+import csv
 import gc
+import glob
 import os
 import shutil
 import sys
@@ -13,6 +15,7 @@ from pprint import pprint
 # Prevent Keras info message; "Using TensorFlow backend."
 STDERR = sys.stderr
 sys.stderr = open(os.devnull, "w")
+from keras import backend as K
 from keras.models import load_model
 sys.stderr = STDERR
 
@@ -201,6 +204,82 @@ def test(model_path, model_num_step, corpus_directory,
     for metric, score in scores.items():
         print("{0}: {1:.4f}".format(metric, score))
 
+def reevaluate(checkpoint_directory, model_num_step, corpus_directory, csv_path=None,
+               word_delimiter="|", tag_delimiter="/"):
+    """Reevaluate all checkpoint's model accuracy with custom metrics"""
+
+    # Default csv path
+    if not csv_path:
+        csv_path = os.path.join(checkpoint_directory, "reevaluate_score.csv")
+
+    # CSV Writer
+    file = open(csv_path, "w")
+    writer = None
+
+    # Load test dataset
+    test_dataset = Corpus(corpus_directory, word_delimiter, tag_delimiter)
+
+    # Create index for character and tag
+    char_index = index_builder(constant.CHARACTER_LIST, constant.CHAR_START_INDEX)
+    tag_index = index_builder(constant.TAG_LIST, constant.TAG_START_INDEX)
+
+    # Generate input
+    inb = InputBuilder(test_dataset, char_index, tag_index, model_num_step,
+                       y_one_hot=False)
+    x_true = inb.x
+    y_true = inb.y
+
+    # Find model in checkpoint directory
+    checkpoint_directory = glob.escape(checkpoint_directory)
+    model_list = sorted(glob.glob(os.path.join(checkpoint_directory, "*.hdf5")))
+
+    # Evaluate score on each model
+    for model_path in model_list:
+        # Load model
+        model = load_model(model_path)
+
+        # Predict
+        y_pred = model.predict(x_true)
+        y_pred = np.argmax(y_pred, axis=2)
+
+        # Calculate score
+        scores = custom_metric(y_true, y_pred)
+
+        # Model file name
+        model_filename = os.path.basename(model_path)
+
+        # Display score
+        print("[Model]", model_filename)
+
+        for metric, score in scores.items():
+            print("* {0}: {1:.4f}".format(metric, score))
+
+        print("")
+
+        # Create writer once at first time
+        if not writer:
+            fields = ["model_filename"] + sorted(scores.keys())
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+
+        # Create row data
+        row = scores
+        row["model_filename"] = model_filename
+
+        # Write row to csv
+        writer.writerow(row)
+        file.flush()
+
+        # Clear session
+        K.clear_session()
+
+        # Garbage collection
+        gc.collect()
+
+    # Close file
+    writer = None
+    file.close()
+
 def summary(model_path):
     """Show model summary"""
 
@@ -248,6 +327,7 @@ if __name__ == "__main__":
         "train": train,
         "run": run,
         "test": test,
+        "reevaluate": reevaluate,
         "summary": summary,
         "show": show
     })
