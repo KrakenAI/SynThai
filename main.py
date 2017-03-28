@@ -2,6 +2,7 @@
 Thai Word Segmentation and POS Tagging with Deep Learning
 """
 
+import gc
 import os
 import shutil
 from datetime import datetime
@@ -242,3 +243,6 @@ if __name__ == "__main__":
         "summary": summary,
         "show": show
     })
+
+    # Garbage collection
+    gc.collect()
