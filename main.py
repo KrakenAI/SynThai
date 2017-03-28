@@ -233,6 +233,9 @@ def show(var):
         pprint(result)
 
 if __name__ == "__main__":
+    # Disable TensorFlow warning
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
     # Set random seed for numpy
     np.random.seed(constant.SEED)
 
