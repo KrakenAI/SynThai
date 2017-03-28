@@ -200,6 +200,39 @@ def test(model_path, model_num_step, corpus_directory,
     for metric, score in scores.items():
         print("{0}: {1:.4f}".format(metric, score))
 
+def summary(model_path):
+    """Show model summary"""
+
+    # Load model
+    model = load_model(model_path)
+
+    # Show model summary
+    print("[Model Summary]")
+    model.summary()
+    print("")
+
+    # Show model config
+    print("[Model Config]")
+    pprint(model.get_config())
+
+def show(var):
+    """Show variable"""
+
+    result = None
+
+    if var == "char_list":
+        result = constant.CHARACTER_LIST
+    elif var == "tag_list":
+        result = constant.TAG_LIST
+    elif var == "char_index":
+        result = index_builder(constant.CHARACTER_LIST, constant.CHAR_START_INDEX)
+    elif var == "tag_index":
+        result = index_builder(constant.TAG_LIST, constant.TAG_START_INDEX)
+
+    # Pretty print
+    if result:
+        pprint(result)
+
 if __name__ == "__main__":
     # Set random seed for numpy
     np.random.seed(constant.SEED)
@@ -207,5 +240,7 @@ if __name__ == "__main__":
     fire.Fire({
         "train": train,
         "run": run,
-        "test": test
+        "test": test,
+        "summary": summary,
+        "show": show
     })
