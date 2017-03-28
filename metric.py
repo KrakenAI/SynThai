@@ -20,10 +20,8 @@ def custom_metric(y_true, y_pred):
     scores = OrderedDict(sorted({
         "seg_accuracy": 0.0,
         "seg_fmeasure": 0.0,
-        "pos_accuracy_with_seg": 0.0,
-        "pos_accuracy_without_seg": 0.0,
-        "pos_fmeasure_with_seg": 0.0,
-        "pos_fmeasure_without_seg": 0.0
+        "pos_accuracy": 0.0,
+        "pos_fmeasure": 0.0
     }.items()))
 
     for sample_idx in range(sample_size):
@@ -34,36 +32,33 @@ def custom_metric(y_true, y_pred):
         seg_true_idx = np.argwhere(sample_y_true != constant.NON_SEGMENT_TAG_INDEX)
         seg_pred_idx = np.argwhere(sample_y_pred != constant.NON_SEGMENT_TAG_INDEX)
 
+        # Merge segment index
+        seg_merge_idx = np.unique(np.concatenate((seg_true_idx, seg_pred_idx)))
+
         # Create segmentation representation in binary array
         seg_true = np.zeros(length)
         seg_true[seg_true_idx] = 1
         seg_pred = np.zeros(length)
         seg_pred[seg_pred_idx] = 1
 
-        # Segmentation accuracy
-        scores["seg_accuracy"] += np.mean(np.equal(seg_true, seg_pred))
-        scores["seg_fmeasure"] += metrics.f1_score(seg_true, seg_pred,
-                                                   pos_label=1, average="binary")
+        # Segmentation accuray
+        scores["seg_accuracy"] += np.mean(np.equal(seg_true[seg_merge_idx],
+                                                   seg_pred[seg_merge_idx]))
+        scores["seg_fmeasure"] += metrics.f1_score(seg_true[seg_merge_idx],
+                                                   seg_pred[seg_merge_idx],
+                                                   pos_label=1,
+                                                   average="binary")
 
         # POS tagging accuracy
-        scores["pos_accuracy_with_seg"] += np.mean(np.equal(sample_y_true, sample_y_pred))
-
-        if len(seg_true_idx) == 0:
-            scores["pos_accuracy_without_seg"] += 1
+        if len(seg_merge_idx) == 0:
+            scores["pos_accuracy"] += 1
+            scores["pos_fmeasure"] += 1
         else:
-            scores["pos_accuracy_without_seg"] += np.mean(np.equal(sample_y_true[seg_true_idx],
-                                                                   sample_y_pred[seg_true_idx]))
-
-        scores["pos_fmeasure_with_seg"] += metrics.f1_score(sample_y_true,
-                                                            sample_y_pred,
-                                                            average="weighted")
-
-        if len(seg_true_idx) == 0:
-            scores["pos_fmeasure_without_seg"] += 1
-        else:
-            scores["pos_fmeasure_without_seg"] += metrics.f1_score(sample_y_true[seg_true_idx],
-                                                                   sample_y_pred[seg_true_idx],
-                                                                   average="weighted")
+            scores["pos_accuracy"] += np.mean(np.equal(sample_y_true[seg_merge_idx],
+                                                       sample_y_pred[seg_merge_idx]))
+            scores["pos_fmeasure"] += metrics.f1_score(sample_y_true[seg_merge_idx],
+                                                       sample_y_pred[seg_merge_idx],
+                                                       average="weighted")
 
     # Average score on each metric
     for metric, score in scores.items():
