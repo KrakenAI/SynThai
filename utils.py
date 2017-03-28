@@ -153,13 +153,14 @@ class InputBuilder(object):
     """Input Builder"""
 
     def __init__(self, corpus, char_index, tag_index, num_step,
-                 text_mode=False, three_dimension=False):
+                 text_mode=False, x_3d=False, y_one_hot=True):
         # Global variable
         self.corpus = corpus
         self.char_index = char_index
         self.tag_index = tag_index
         self.num_step = num_step
-        self.three_dimension = three_dimension
+        self.x_3d = x_3d
+        self.y_one_hot = y_one_hot
 
         if not text_mode:
             self.x = list()
@@ -179,7 +180,7 @@ class InputBuilder(object):
         # Pad and reshape
         encoded_char_list = self._pad(encoded_char_list, self.num_step)
 
-        if self.three_dimension:
+        if self.x_3d:
             encoded_char_list = encoded_char_list.reshape((-1, self.num_step, 1))
         else:
             encoded_char_list = encoded_char_list.reshape((-1, self.num_step))
@@ -207,15 +208,21 @@ class InputBuilder(object):
         # Pad and reshape x
         self.x = self._pad(self.x, self.num_step)
 
-        if self.three_dimension:
+        if self.x_3d:
             self.x = self.x.reshape((-1, self.num_step, 1))
         else:
             self.x = self.x.reshape((-1, self.num_step))
 
-        # Pad, convert to one-hot vector, and reshape y
+        # Pad y
         self.y = self._pad(self.y, self.num_step)
-        self.y = to_categorical(self.y, constant.NUM_TAGS)
-        self.y = self.y.reshape((-1, self.num_step, constant.NUM_TAGS))
+
+        # Convert y to one-hot vector and reshape y
+        if self.y_one_hot:
+            self.y = to_categorical(self.y, constant.NUM_TAGS)
+            self.y = self.y.reshape((-1, self.num_step, constant.NUM_TAGS))
+
+        else:
+            self.y = self.y.reshape((-1, self.num_step))
 
     def _encode(self, index, key, default_index=-1):
         """Encode to index"""

@@ -176,12 +176,10 @@ def test(model_path, model_num_step, corpus_directory,
     tag_index = index_builder(constant.TAG_LIST, constant.TAG_START_INDEX)
 
     # Generate input
-    inb = InputBuilder(test_dataset, char_index, tag_index, model_num_step)
+    inb = InputBuilder(test_dataset, char_index, tag_index, model_num_step,
+                       y_one_hot=False)
     x_true = inb.x
     y_true = inb.y
-
-    # Convert 3D one-hot label to 2D label
-    y_true = np.argmax(y_true, axis=2)
 
     # Load model
     model = load_model(model_path)
