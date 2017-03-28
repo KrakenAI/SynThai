@@ -6,6 +6,7 @@ import gc
 import os
 import shutil
 import sys
+import warnings
 from datetime import datetime
 from pprint import pprint
 
@@ -18,6 +19,7 @@ sys.stderr = STDERR
 import fire
 import numpy as np
 from keras.models import load_model
+from sklearn.exceptions import UndefinedMetricWarning
 
 import constant
 from callback import CustomCallback
@@ -242,6 +244,9 @@ def show(var):
 if __name__ == "__main__":
     # Disable TensorFlow warning
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+    # Disable Sklearn UndefinedMetricWarning
+    warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
     # Set random seed for numpy
     np.random.seed(constant.SEED)
