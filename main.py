@@ -117,9 +117,6 @@ def run(model_path, model_num_step, text_directory, output_directory,
     # Load model
     model = load_model(model_path)
 
-    # Display model summary before run
-    model.summary()
-
     # Run on each text
     for text_idx in range(texts.count):
         # Get character list and their encoded list
@@ -193,9 +190,6 @@ def test(model_path, model_num_step, corpus_directory,
 
     # Load model
     model = load_model(model_path)
-
-    # Display model summary
-    model.summary()
 
     # Predict
     y_pred = model.predict(x_true)
