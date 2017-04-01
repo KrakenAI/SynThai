@@ -31,8 +31,8 @@ from utils import Corpus, InputBuilder, DottableDict, index_builder
 
 def train(corpus_directory, new_model=True, model_path=None, num_step=60,
           word_delimiter="|", tag_delimiter="/", valid_split=0.1,
-          epochs=1, batch_size=64, learning_rate=0.001, shuffle=False,
-          es_enable=False, es_min_delta=0.0001, es_patience=10):
+          initial_epoch=None, epochs=1, batch_size=64, learning_rate=0.001,
+          shuffle=False, es_enable=False, es_min_delta=0.0001, es_patience=10):
     """Train model"""
 
     # Initialize checkpoint directory
@@ -61,10 +61,15 @@ def train(corpus_directory, new_model=True, model_path=None, num_step=60,
         "learning_rate": learning_rate
     })
     if new_model:
+        initial_epoch = 0
         model = Model(hyper_params).model
+
     else:
         if not model_path:
             raise Exception("Model path is not defined.")
+
+        if initial_epoch is None:
+            raise Exception("Initial epoch is not defined.")
 
         model = load_model(model_path)
 
@@ -95,8 +100,8 @@ def train(corpus_directory, new_model=True, model_path=None, num_step=60,
 
     # Train model
     model.fit(x_true, y_true, validation_split=valid_split,
-              epochs=epochs, batch_size=batch_size,
-              shuffle=shuffle, callbacks=callbacks)
+              initial_epoch=initial_epoch, epochs=epochs,
+              batch_size=batch_size, shuffle=shuffle, callbacks=callbacks)
 
 def run(model_path, model_num_step, text_directory, output_directory,
         word_delimiter="|", tag_delimiter="/"):
