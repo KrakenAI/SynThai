@@ -10,12 +10,12 @@ import shutil
 import sys
 import warnings
 from datetime import datetime
+from multiprocessing import Process, Queue
 from pprint import pprint
 
 # Prevent Keras info message; "Using TensorFlow backend."
 STDERR = sys.stderr
 sys.stderr = open(os.devnull, "w")
-from keras import backend as K
 from keras.models import load_model
 sys.stderr = STDERR
 
@@ -233,14 +233,32 @@ def reevaluate(checkpoint_directory, model_num_step, corpus_directory, csv_path=
     checkpoint_directory = glob.escape(checkpoint_directory)
     model_list = sorted(glob.glob(os.path.join(checkpoint_directory, "*.hdf5")))
 
-    # Evaluate score on each model
-    for model_path in model_list:
+    # Process Target
+    def predict(model_path, x_true, queue):
         # Load model
         model = load_model(model_path)
 
         # Predict
         y_pred = model.predict(x_true)
         y_pred = np.argmax(y_pred, axis=2)
+
+        # Put predict result to queue
+        queue.put(y_pred)
+
+    # Queue
+    queue = Queue()
+
+    # Evaluate score on each model
+    for model_path in model_list:
+        # Spawn process to load model and predict to prevent memory leak
+        process = Process(target=predict, args=(model_path, x_true, queue))
+        process.start()
+
+        # Get predict result from queue
+        y_pred = queue.get()
+
+        # Join process
+        process.join()
 
         # Calculate score
         scores = custom_metric(y_true, y_pred)
@@ -269,12 +287,6 @@ def reevaluate(checkpoint_directory, model_num_step, corpus_directory, csv_path=
         # Write row to csv
         writer.writerow(row)
         file.flush()
-
-        # Clear session
-        K.clear_session()
-
-        # Garbage collection
-        gc.collect()
 
     # Close file
     writer = None
