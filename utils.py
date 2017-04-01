@@ -119,7 +119,7 @@ class Corpus(object):
             # Empty or Spacebar
             if token == "" or token == constant.SPACEBAR:
                 word = constant.SPACEBAR
-                tag = constant.SPACEBAR_TAG
+                tag = constant.PAD_TAG_INDEX
 
             # Word
             else:

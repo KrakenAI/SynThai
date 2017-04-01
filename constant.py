@@ -6,7 +6,6 @@ import string
 
 # Spacebar
 SPACEBAR = " "
-SPACEBAR_TAG = "SPB"
 
 # Escape Character
 ESCAPE_WORD_DELIMITER = "\t"
@@ -64,7 +63,10 @@ CHARACTER_LIST = [
     "\u0e24", # ฤ
     "\u0e30", # ะ
     "\u0e31", # อั (ไม้หันอากาศ)
-    "\u0e32", # อา
+    [
+        "\u0e32",  # อา
+        "\u0e45",  # ๅ
+    ],
     "\u0e33", # อำ
     "\u0e34", # อิ
     "\u0e35", # อี
@@ -77,7 +79,6 @@ CHARACTER_LIST = [
     "\u0e42", # โ
     "\u0e43", # ใ
     "\u0e44", # ไ
-    "\u0e45", # ๅ
     "\u0e47", # อ็
 
     # Thai Tone
@@ -86,22 +87,24 @@ CHARACTER_LIST = [
     "\u0e4A", # อ๊
     "\u0e4B", # อ๋
 
-    # Thai Number
-    "\u0e50", # ๐
-    "\u0e51", # ๑
-    "\u0e52", # ๒
-    "\u0e53", # ๓
-    "\u0e54", # ๔
-    "\u0e55", # ๕
-    "\u0e56", # ๖
-    "\u0e57", # ๗
-    "\u0e58", # ๘
-    "\u0e59", # ๙
-
     # Thai Symbol
     "\u0e2F", # ฯ
     "\u0e46", # ๆ
     "\u0e4C", # อ์ (การันต์)
+
+    # Thai Number
+    [
+        "\u0e50",  # ๐
+        "\u0e51",  # ๑
+        "\u0e52",  # ๒
+        "\u0e53",  # ๓
+        "\u0e54",  # ๔
+        "\u0e55",  # ๕
+        "\u0e56",  # ๖
+        "\u0e57",  # ๗
+        "\u0e58",  # ๘
+        "\u0e59"  # ๙
+    ],
 
     # Unused Thai Character
     [
@@ -144,7 +147,7 @@ TAG_START_INDEX = 2
 TAG_LIST = ["NN", "NR", "PPER", "PINT", "PDEM", "DPER", "DINT", "DDEM", "PDT",
             "REFX", "VV", "VA", "AUX", "JJA", "JJV", "ADV", "NEG", "PAR", "CL",
             "CD", "OD", "FXN", "FXG", "FXAV", "FXAJ", "COMP", "CNJ", "P", "IJ",
-            "PU", "FWN", "FWV", "FWA", "FWX", SPACEBAR_TAG]
+            "PU", "FWN", "FWV", "FWA", "FWX"]
 
 NUM_TAGS = len(TAG_LIST) + 2
 
