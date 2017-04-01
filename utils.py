@@ -190,6 +190,10 @@ class InputBuilder(object):
     def generate_x_y(self):
         """Generate input and label for training"""
 
+        custom_index = {
+            constant.PAD_TAG_INDEX: constant.PAD_TAG_INDEX
+        }
+
         for corpus_idx in range(self.corpus.count):
             token_list = self.corpus.get_token_list(corpus_idx)
 
@@ -202,7 +206,7 @@ class InputBuilder(object):
 
                 # Encode y
                 self.y.extend([constant.NON_SEGMENT_TAG_INDEX] * (len(word) - 1))
-                encoded_tag = self._encode(self.tag_index, tag)
+                encoded_tag = self._encode(self.tag_index, tag, custom_index=custom_index)
                 self.y.append(encoded_tag)
 
         # Pad and reshape x
@@ -224,8 +228,12 @@ class InputBuilder(object):
         else:
             self.y = self.y.reshape((-1, self.num_step))
 
-    def _encode(self, index, key, default_index=-1):
+    def _encode(self, index, key, default_index=-1, custom_index=dict()):
         """Encode to index"""
+
+        # Find in custom index
+        if key in custom_index:
+            return custom_index[key]
 
         # Key does not exist in index
         if key not in index:
