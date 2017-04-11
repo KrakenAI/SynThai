@@ -29,8 +29,8 @@ from metric import custom_metric
 from model import Model
 from utils import Corpus, InputBuilder, DottableDict, index_builder
 
-def train(corpus_directory, new_model=True, model_path=None, num_step=60,
-          word_delimiter="|", tag_delimiter="/", valid_split=0.1,
+def train(corpus_directory, word_delimiter="|", tag_delimiter="/",
+          new_model=True, model_path=None, num_step=60, valid_split=0.1,
           initial_epoch=None, epochs=1, batch_size=64, learning_rate=0.001,
           shuffle=False, es_enable=False, es_min_delta=0.0001, es_patience=10):
     """Train model"""
@@ -47,7 +47,8 @@ def train(corpus_directory, new_model=True, model_path=None, num_step=60,
     train_dataset = Corpus(corpus_directory, word_delimiter, tag_delimiter)
 
     # Create index for character and tag
-    char_index = index_builder(constant.CHARACTER_LIST, constant.CHAR_START_INDEX)
+    char_index = index_builder(constant.CHARACTER_LIST,
+                               constant.CHAR_START_INDEX)
     tag_index = index_builder(constant.TAG_LIST, constant.TAG_START_INDEX)
 
     # Generate input
@@ -340,6 +341,7 @@ if __name__ == "__main__":
     # Set random seed for numpy
     np.random.seed(constant.SEED)
 
+    # CLI
     fire.Fire({
         "train": train,
         "run": run,

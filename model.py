@@ -2,12 +2,12 @@
 Keras Model
 """
 
-import constant
-
 from keras.models import Sequential
 from keras.layers import Embedding, LSTM, TimeDistributed, Dense, Dropout
 from keras.layers.wrappers import Bidirectional
 from keras.optimizers import RMSprop
+
+import constant
 
 class Model(object):
     def __init__(self, hyper_params):
