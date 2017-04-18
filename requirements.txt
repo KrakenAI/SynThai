@@ -5,3 +5,4 @@ sklearn
 fire
 h5py
 pyyaml
+hyperopt
