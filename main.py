@@ -31,8 +31,8 @@ from utils import Corpus, InputBuilder, DottableDict, index_builder
 
 def train(corpus_directory, word_delimiter="|", tag_delimiter="/",
           new_model=True, model_path=None, num_step=60, valid_split=0.1,
-          initial_epoch=None, epochs=1, batch_size=64, learning_rate=0.001,
-          shuffle=False, es_enable=False, es_min_delta=0.0001, es_patience=10):
+          initial_epoch=None, epochs=100, batch_size=32, learning_rate=0.001,
+          shuffle=False, es_enable=True, es_min_delta=0.00001, es_patience=5):
     """Train model"""
 
     # Initialize checkpoint directory

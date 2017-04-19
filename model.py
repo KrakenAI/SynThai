@@ -18,17 +18,26 @@ class Model(object):
         model.add(Embedding(constant.NUM_CHARS, 10,
                             input_length=hyper_params.num_step))
 
-        for _ in range(3):
-            # LSTM layer
-            lstm = LSTM(128, return_sequences=True, unroll=True,
-                        dropout=0.5, recurrent_dropout=0.5)
+        # LSTM Layer #1
+        lstm = LSTM(256, return_sequences=True, unroll=True,
+                    dropout=0.1, recurrent_dropout=0.1)
 
-            # Bidirectional LSTM
-            bi_lstm = Bidirectional(lstm)
-            model.add(bi_lstm)
+        model.add(Bidirectional(lstm))
+        model.add(Dropout(0.1))
 
-            # LSTM dropout
-            model.add(Dropout(0.5))
+        # LSTM Layer #2
+        lstm = LSTM(256, return_sequences=True, unroll=True,
+                    dropout=0.1, recurrent_dropout=0.1)
+
+        model.add(Bidirectional(lstm))
+        model.add(Dropout(0.1))
+
+        # LSTM Layer #3
+        lstm = LSTM(128, return_sequences=True, unroll=True,
+                    dropout=0.25, recurrent_dropout=0.25)
+
+        model.add(Bidirectional(lstm))
+        model.add(Dropout(0.25))
 
         # RNN
         model.add(TimeDistributed(Dense(constant.NUM_TAGS, activation="softmax"),
