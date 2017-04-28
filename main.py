@@ -105,81 +105,87 @@ def train(corpus_directory, word_delimiter="|", tag_delimiter="/",
               batch_size=batch_size, shuffle=shuffle, callbacks=callbacks)
 
 def run(model_path, model_num_step, text_directory, output_directory,
-        word_delimiter="|", tag_delimiter="/"):
+        word_delimiter="|", tag_delimiter="/", hot_reload=False):
     """Run specific trained model for word segmentation and POS tagging"""
-
-    # Create and empty old output directory
-    shutil.rmtree(output_directory, ignore_errors=True)
-    os.makedirs(output_directory)
-
-    # Load text
-    texts = Corpus(text_directory)
 
     # Create index for character and tag
     char_index = index_builder(constant.CHARACTER_LIST, constant.CHAR_START_INDEX)
     tag_index = index_builder(constant.TAG_LIST, constant.TAG_START_INDEX)
 
-    # Generate input
-    inb = InputBuilder(texts, char_index, tag_index, model_num_step, text_mode=True)
-
     # Load model
     model = load_model(model_path)
 
-    # Run on each text
-    for text_idx in range(texts.count):
-        # Get character list and their encoded list
-        x_true = texts.get_char_list(text_idx)
-        encoded_x = inb.get_encoded_char_list(text_idx)
+    while True:
+        print("Running...")
 
-        # Predict
-        y_pred = model.predict(encoded_x)
-        y_pred = np.argmax(y_pred, axis=2)
+        # Create and empty old output directory
+        shutil.rmtree(output_directory, ignore_errors=True)
+        os.makedirs(output_directory)
 
-        # Flatten to 1D
-        y_pred = y_pred.flatten()
+        # Load text
+        texts = Corpus(text_directory)
 
-        # Result list
-        result = list()
+        # Generate input
+        inb = InputBuilder(texts, char_index, tag_index, model_num_step,
+                           text_mode=True)
 
-        # Process on each character
-        for idx, char in enumerate(x_true):
-            # Character label
-            label = y_pred[idx]
+        # Run on each text
+        for text_idx in range(texts.count):
+            # Get character list and their encoded list
+            x_true = texts.get_char_list(text_idx)
+            encoded_x = inb.get_encoded_char_list(text_idx)
 
-            # Pad label
-            if label == constant.PAD_TAG_INDEX:
-                continue
+            # Predict
+            y_pred = model.predict(encoded_x)
+            y_pred = np.argmax(y_pred, axis=2)
 
-            # Append character to result list
-            result.append(char)
+            # Flatten to 1D
+            y_pred = y_pred.flatten()
 
-            # Skip tag for spacebar character
-            if char == constant.SPACEBAR:
-                continue
+            # Result list
+            result = list()
 
-            # Tag at segmented point
-            if label != constant.NON_SEGMENT_TAG_INDEX:
-                # Index offset
-                index_without_offset = label - constant.TAG_START_INDEX
+            # Process on each character
+            for idx, char in enumerate(x_true):
+                # Character label
+                label = y_pred[idx]
 
-                # Tag name
-                tag_name = constant.TAG_LIST[index_without_offset]
+                # Pad label
+                if label == constant.PAD_TAG_INDEX:
+                    continue
 
-                # Append delimiter and tag to result list
-                result.append(tag_delimiter)
-                result.append(tag_name)
-                result.append(word_delimiter)
+                # Append character to result list
+                result.append(char)
 
-        # Save text string to file
-        filename = texts.get_filename(text_idx)
-        output_path = os.path.join(output_directory, filename)
+                # Skip tag for spacebar character
+                if char == constant.SPACEBAR:
+                    continue
 
-        with open(output_path, "w") as file:
-            # Merge result list to text string and write to file
-            file.write("".join(result))
-            file.write("\n")
+                # Tag at segmented point
+                if label != constant.NON_SEGMENT_TAG_INDEX:
+                    # Index offset
+                    index_without_offset = label - constant.TAG_START_INDEX
 
-def test(model_path, model_num_step, corpus_directory,
+                    # Tag name
+                    tag_name = constant.TAG_LIST[index_without_offset]
+
+                    # Append delimiter and tag to result list
+                    result.append(tag_delimiter)
+                    result.append(tag_name)
+                    result.append(word_delimiter)
+
+            # Save text string to file
+            filename = texts.get_filename(text_idx)
+            output_path = os.path.join(output_directory, filename)
+
+            with open(output_path, "w") as file:
+                # Merge result list to text string and write to file
+                file.write("".join(result))
+                file.write("\n")
+
+        input("Reload?")
+
+def test(model_path, model_num_step, corpus_directory, csv_path,
          word_delimiter="|", tag_delimiter="/"):
     """Test model accuracy with custom metrics"""
 

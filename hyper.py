@@ -252,7 +252,7 @@ def hyper(corpus_directory, word_delimiter="|", tag_delimiter="/",
 
             print("Create new trials")
 
-        # Run hyperopt
+        # Run Hyperopt
         best = fmin(model, space=space, algo=tpe.suggest, max_evals=max_trials,
                     trials=trials)
 
