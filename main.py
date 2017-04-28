@@ -358,20 +358,20 @@ def encode(content, word_delimiter="|", tag_delimiter="/", num_step=60):
 def show(var):
     """Show variable"""
 
-    result = None
-
     if var == "char_list":
         result = constant.CHARACTER_LIST
+        pprint(result)
+
     elif var == "tag_list":
         result = constant.TAG_LIST
+        
     elif var == "char_index":
         result = index_builder(constant.CHARACTER_LIST, constant.CHAR_START_INDEX)
+        pprint(sorted(result.items(), key=operator.itemgetter(1)))
+
     elif var == "tag_index":
         result = index_builder(constant.TAG_LIST, constant.TAG_START_INDEX)
-
-    # Pretty print
-    if result:
-        pprint(result)
+        pprint(sorted(result.items(), key=operator.itemgetter(1)))
 
 if __name__ == "__main__":
     # Disable TensorFlow warning
