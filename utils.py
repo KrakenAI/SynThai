@@ -23,7 +23,7 @@ class Text(object):
 class Corpus(object):
     """Corpus Manager"""
 
-    def __init__(self, corpus_directory, word_delimiter=None, tag_delimiter=None):
+    def __init__(self, corpus_directory=None, word_delimiter=None, tag_delimiter=None):
         # Global variable
         self.corpus_directory = corpus_directory
         self.word_delimiter = word_delimiter
@@ -31,7 +31,8 @@ class Corpus(object):
         self.__corpus = list()
 
         # Load corpus to memory
-        self._load()
+        if corpus_directory is not None:
+            self._load()
 
     def _preprocessing(self, content):
         """Text preprocessing"""
@@ -91,6 +92,16 @@ class Corpus(object):
 
                 # Add text to corpus
                 self.__corpus.append(text)
+
+    def add_text(self, content):
+        # Preprocessing
+        content = self._preprocessing(content)
+
+        # Create text instance
+        text = Text(str(), str(), content)
+
+        # Add text to corpus
+        self.__corpus.append(text)
 
     @property
     def count(self):

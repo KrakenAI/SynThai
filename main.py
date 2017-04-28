@@ -332,6 +332,29 @@ def summary(model_path):
     print("[Model Config]")
     pprint(model.get_config())
 
+
+def encode(content, word_delimiter="|", tag_delimiter="/", num_step=60):
+    # Create corpus instance
+    corpus = Corpus(word_delimiter=word_delimiter, tag_delimiter=tag_delimiter)
+
+    # Add text to corpus
+    corpus.add_text(content)
+
+    # Create index for character and tag
+    char_index = index_builder(constant.CHARACTER_LIST,
+                               constant.CHAR_START_INDEX)
+    tag_index = index_builder(constant.TAG_LIST, constant.TAG_START_INDEX)
+
+    # Generate input
+    inb = InputBuilder(corpus, char_index, tag_index, num_step, y_one_hot=False)
+
+    # Display encoded content
+    np.set_printoptions(threshold=np.inf)
+    print("[Input]")
+    print(inb.x)
+    print("[Label]")
+    print(inb.y)
+
 def show(var):
     """Show variable"""
 
@@ -367,6 +390,7 @@ if __name__ == "__main__":
         "test": test,
         "reevaluate": reevaluate,
         "summary": summary,
+        "encode": encode,
         "show": show
     })
 
