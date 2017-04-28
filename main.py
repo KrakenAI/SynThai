@@ -204,11 +204,24 @@ def test(model_path, model_num_step, corpus_directory,
     y_pred = np.argmax(y_pred, axis=2)
 
     # Calculate score
-    scores = custom_metric(y_true, y_pred)
+    scores, confusion_matrix = custom_metric(y_true, y_pred, gen_cm=True)
+
+    # Save confusion matrix
+    with open(csv_path, "w") as file:
+        fields = ["tag_true_idx"] + list(range(constant.NUM_TAGS))
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+
+        for tag_true_idx, matrix in confusion_matrix.items():
+            matrix["tag_true_idx"] = tag_true_idx
+            writer.writerow(matrix)
 
     # Display score
     for metric, score in scores.items():
         print("{0}: {1:.4f}".format(metric, score))
+
+    # Display confusion matrix
+    pprint(confusion_matrix)
 
 def reevaluate(checkpoint_directory, model_num_step, corpus_directory, csv_path=None,
                word_delimiter="|", tag_delimiter="/"):
@@ -267,7 +280,7 @@ def reevaluate(checkpoint_directory, model_num_step, corpus_directory, csv_path=
         process.join()
 
         # Calculate score
-        scores = custom_metric(y_true, y_pred)
+        scores, _ = custom_metric(y_true, y_pred)
 
         # Model file name
         model_filename = os.path.basename(model_path)

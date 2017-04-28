@@ -9,7 +9,7 @@ from sklearn import metrics
 
 import constant
 
-def custom_metric(y_true, y_pred):
+def custom_metric(y_true, y_pred, gen_cm=False):
     """Calculate score with custom metric"""
 
     # Sample size and length
@@ -24,6 +24,19 @@ def custom_metric(y_true, y_pred):
         "pos_fmeasure": 0.0
     }.items()))
 
+    # Initialize confusion matrix dictionary
+    confusion_matrix = None
+
+    if gen_cm:
+        confusion_matrix = dict()
+
+        for tag_true_idx in range(constant.NUM_TAGS):
+            confusion_matrix[tag_true_idx] = dict()
+
+            for tag_pred_idx in range(constant.NUM_TAGS):
+                confusion_matrix[tag_true_idx][tag_pred_idx] = 0
+
+    # Process on each sample
     for sample_idx in range(sample_size):
         sample_y_true = y_true[sample_idx]
         sample_y_pred = y_pred[sample_idx]
@@ -60,8 +73,22 @@ def custom_metric(y_true, y_pred):
                                                        sample_y_pred[seg_merge_idx],
                                                        average="weighted")
 
+        # Confusion matrix
+        if gen_cm:
+            # Non segment tag
+            nonseg_index = constant.NON_SEGMENT_TAG_INDEX
+            nonseg_count = length - seg_merge_idx.shape[0]
+            confusion_matrix[nonseg_index][nonseg_index] += nonseg_count
+
+            # Other tag
+            for idx in seg_merge_idx:
+                tag_true = sample_y_true[idx]
+                tag_pred = sample_y_pred[idx]
+
+                confusion_matrix[tag_true][tag_pred] += 1
+
     # Average score on each metric
     for metric, score in scores.items():
         scores[metric] = score / sample_size
 
-    return scores
+    return scores, confusion_matrix

@@ -32,7 +32,7 @@ class CalcScore(Callback):
         y_pred = np.argmax(y_pred, axis=2)
 
         # Calculate score
-        scores = custom_metric(y_true, y_pred)
+        scores, _ = custom_metric(y_true, y_pred)
 
         # Display score
         print(end="\r")
