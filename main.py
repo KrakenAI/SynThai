@@ -5,10 +5,12 @@ Thai Word Segmentation and POS Tagging with Deep Learning
 import csv
 import gc
 import glob
+import json
 import os
 import shutil
 import sys
 import warnings
+from collections import Counter
 from datetime import datetime
 from multiprocessing import Process, Queue
 from pprint import pprint
@@ -185,8 +187,8 @@ def run(model_path, model_num_step, text_directory, output_directory,
 
         input("Reload?")
 
-def test(model_path, model_num_step, corpus_directory, csv_path,
-         word_delimiter="|", tag_delimiter="/"):
+def test(model_path, model_num_step, corpus_directory, gen_tm=False,
+         cm_path=None, report_path=False, word_delimiter="|", tag_delimiter="/"):
     """Test model accuracy with custom metrics"""
 
     # Load test dataset
@@ -202,6 +204,11 @@ def test(model_path, model_num_step, corpus_directory, csv_path,
     x_true = inb.x
     y_true = inb.y
 
+    # Tag Matrix
+    if gen_tm:
+        tag_matrix = Counter(y_true.flatten())
+        print(tag_matrix)
+
     # Load model
     model = load_model(model_path)
 
@@ -210,24 +217,89 @@ def test(model_path, model_num_step, corpus_directory, csv_path,
     y_pred = np.argmax(y_pred, axis=2)
 
     # Calculate score
-    scores, confusion_matrix = custom_metric(y_true, y_pred, gen_cm=True)
+    gen_cm = False
+
+    if cm_path:
+        gen_cm = True
+
+    scores, confusion_matrix = custom_metric(y_true, y_pred, gen_cm=gen_cm)
 
     # Save confusion matrix
-    with open(csv_path, "w") as file:
-        fields = ["tag_true_idx"] + list(range(constant.NUM_TAGS))
-        writer = csv.DictWriter(file, fieldnames=fields)
-        writer.writeheader()
+    if cm_path is not None:
+        with open(cm_path, "w") as file:
+            fields = ["tag_true_idx"] + list(range(constant.NUM_TAGS))
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
 
-        for tag_true_idx, matrix in confusion_matrix.items():
-            matrix["tag_true_idx"] = tag_true_idx
-            writer.writerow(matrix)
+            for tag_true_idx, matrix in confusion_matrix.items():
+                matrix["tag_true_idx"] = tag_true_idx
+                writer.writerow(matrix)
+
+    # Generate report
+    if report_path:
+        # Flatten
+        x_true = x_true.flatten()
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
+
+        # Find segment index
+        seg_true_idx = np.argwhere(y_true != constant.NON_SEGMENT_TAG_INDEX)
+        seg_pred_idx = np.argwhere(y_pred != constant.NON_SEGMENT_TAG_INDEX)
+
+        # Merge segment index
+        seg_merge_idx = np.unique(np.concatenate((seg_true_idx, seg_pred_idx)))
+
+        # Result
+        incorrect = dict()
+
+        for seg_idx in seg_merge_idx:
+            true_tag = str(y_true[seg_idx])
+            pred_tag = str(y_pred[seg_idx])
+
+            if true_tag == pred_tag:
+                pass
+            else:
+                char_list = ["[PAD]", "[UNKNOW]"] + constant.CHARACTER_LIST
+
+                left_context = list()
+                for x in x_true[seg_idx-10:seg_idx]:
+                    char_index = int(x)
+
+                    if isinstance(char_list[char_index], list):
+                        left_context.append(char_list[char_index][0])
+                    else:
+                        left_context.append(char_list[char_index])
+
+                right_context = list()
+                for x in x_true[seg_idx+1:seg_idx+11]:
+                    char_index = int(x)
+
+                    if isinstance(char_list[char_index], list):
+                        right_context.append(char_list[char_index][0])
+                    else:
+                        right_context.append(char_list[char_index])
+
+                char_index = int(x_true[seg_idx])
+                if isinstance(char_list[char_index], list):
+                    char = char_list[char_index][0]
+                else:
+                    char = char_list[char_index]
+
+                left_context = "".join(left_context)
+                right_context = "".join(right_context)
+                context = "|".join([left_context, char, right_context])
+
+                incorrect.setdefault(true_tag, dict())
+                incorrect[true_tag].setdefault(pred_tag, list())
+                incorrect[true_tag][pred_tag].append(context)
+
+        # Save report to json file
+        with open(report_path, "w") as file:
+            json.dump(incorrect, file)
 
     # Display score
     for metric, score in scores.items():
-        print("{0}: {1:.4f}".format(metric, score))
-
-    # Display confusion matrix
-    pprint(confusion_matrix)
+        print("{0}: {1:.6f}".format(metric, score))
 
 def reevaluate(checkpoint_directory, model_num_step, corpus_directory, csv_path=None,
                word_delimiter="|", tag_delimiter="/"):
@@ -295,7 +367,7 @@ def reevaluate(checkpoint_directory, model_num_step, corpus_directory, csv_path=
         print("[Model]", model_filename)
 
         for metric, score in scores.items():
-            print("* {0}: {1:.4f}".format(metric, score))
+            print("* {0}: {1:.6f}".format(metric, score))
 
         print("")
 
