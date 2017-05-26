@@ -5,7 +5,7 @@ Keras Model
 from keras.models import Sequential
 from keras.layers import Embedding, LSTM, TimeDistributed, Dense, Dropout
 from keras.layers.wrappers import Bidirectional
-from keras.optimizers import RMSprop
+from keras.optimizers import Adam
 
 import constant
 
@@ -15,7 +15,7 @@ class Model(object):
         model = Sequential()
 
         # Embedding layer
-        model.add(Embedding(constant.NUM_CHARS, 10,
+        model.add(Embedding(constant.NUM_CHARS, 5,
                             input_length=hyper_params.num_step))
 
         # LSTM Layer #1
@@ -44,7 +44,7 @@ class Model(object):
                                   input_shape=(hyper_params.num_step, 128)))
 
         # Optimizer
-        optimizer = RMSprop(hyper_params.learning_rate)
+        optimizer = Adam(hyper_params.learning_rate)
 
         # Compile
         model.compile(loss="categorical_crossentropy", optimizer=optimizer,
